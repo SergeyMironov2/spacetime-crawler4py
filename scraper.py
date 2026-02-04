@@ -25,6 +25,16 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        
+        # filter hostname to acceptable list -keith
+        acceptable_hostname_suffixes = ['.ics.uci.edu', '.cs.uci.edu', '.informatics.uci.edu', '.stat.uci.edu']
+        acceptable = False
+        for hostname_suffix in acceptable_hostname_suffixes:
+            if parsed.hostname[-len(hostname_suffix):] == hostname_suffix:
+                acceptable = True
+        if not acceptable:
+            return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
