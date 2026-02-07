@@ -1,7 +1,12 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from urllib.parse import urlparse
+from urllib.parse import urlunparse
+from urllib.parse import urldefrag
 import re
+
+# tracking unique urls
+unique_url_set = set()
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -26,23 +31,26 @@ def extract_next_links(url, resp):
     current_url = resp.url
     next_urls_absolute = []
 
-    #
+    # *source*: originally from chatgpt (supposedly 
+    #      allowed by ed post #49) but later 
+    #      refactored and tweaked by Sergey M.
     for anchor_tag in page_as_neater_object.find_all("a", href=True):
         next_url_relative = anchor_tag["href"]
         next_url_absolute = urljoin(current_url, next_url_relative)
         if is_valid(next_url_absolute):
             next_urls_absolute.append(next_url_absolute)
 
-    return next_urls_absolute
+            # tracking unique urls
+            url_with_fragment = next_url_absolute
+            url_without_fragment, fragment = urldefrag(url_with_fragment)
+            unique_url_set.add(url_without_fragment) # preventing duplicate entries auto-handled by "set" data structure
 
-    # # only accept OK status -keith
-    # if (resp.status != 200):
-    #     return []
+    #
+    print("**")
+    print("number of unique urls: " + str(len(unique_url_set)))
+    print("**")
     
-    # # hacky start -keith
-    # result = []
-    # for match in re.finditer(r'href="http*"', resp.raw_response.content):
-    #     result.append(match[0][6:-1])
+    return next_urls_absolute
         
 
 def is_valid(url):
