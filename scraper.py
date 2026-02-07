@@ -1,5 +1,7 @@
-import re
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 from urllib.parse import urlparse
+import re
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -16,16 +18,32 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
 
-    # only accept OK status -keith
-    if (resp.status != 200):
+    if resp.status != 200:
         return []
+
+    #
+    page_as_neater_object = BeautifulSoup(resp.raw_response.content, "lxml")
+    current_url = resp.url
+    next_urls_absolute = []
+
+    #
+    for anchor_tag in page_as_neater_object.find_all("a", href=True):
+        next_url_relative = anchor_tag["href"]
+        next_url_absolute = urljoin(current_url, next_url_relative)
+        if is_valid(next_url_absolute):
+            next_urls_absolute.append(next_url_absolute)
+
+    return next_urls_absolute
+
+    # # only accept OK status -keith
+    # if (resp.status != 200):
+    #     return []
     
-    # hacky start -keith
-    result = []
-    for match in re.finditer(r'href="http*"', resp.raw_response.content):
-        result.append(match[0][6:-1])
+    # # hacky start -keith
+    # result = []
+    # for match in re.finditer(r'href="http*"', resp.raw_response.content):
+    #     result.append(match[0][6:-1])
         
-    return result
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -36,12 +54,13 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]):
             return False
         
-        # filter hostname to acceptable list -keith
+        # filter hostname to acceptable list - *my partner*
         acceptable_hostname_suffixes = ['.ics.uci.edu', '.cs.uci.edu', '.informatics.uci.edu', '.stat.uci.edu']
         acceptable = False
         for hostname_suffix in acceptable_hostname_suffixes:
             if parsed.hostname[-len(hostname_suffix):] == hostname_suffix:
                 acceptable = True
+                break
         if not acceptable:
             return False
 
