@@ -5,9 +5,6 @@ from urllib.parse import urlunparse
 from urllib.parse import urldefrag
 import re
 
-# tracking unique urls
-unique_url_set = set()
-
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -31,27 +28,68 @@ def extract_next_links(url, resp):
     current_url = resp.url
     next_urls_absolute = []
 
-    # *source*: originally from chatgpt (supposedly 
-    #      allowed by ed post #49) but later 
-    #      refactored and tweaked by Sergey M.
+    # setup for word counting
+    # 
+    # *source*: specific regex syntax "r'\W+'" was
+    #      suggested by ChatGPT, remaining logic
+    #      done by us
+    # 
+    text_to_parse_mixed_case = page_as_neater_object.text()
+    text_to_parse_lower_case = text_to_parse_mixed_case.lower()
+    word_list = re.split(r'\W+', text_to_parse_lower_case)
+
+    # word counting: storage for report part 2
+    if len(word_list) > non_unique_url_and_max_word_count[1]:
+        non_unique_url_and_max_word_count = (
+            current_url,
+            len(word_list))
+
+    # word counting: storage for report part 3
+    for word in word_list:
+        if word not in stop_words:
+            if word in words_and_counts_no_stop_words:
+                words_and_counts_no_stop_words[word] += 1
+            else:
+                words_and_counts_no_stop_words[word] = 1
+        
+    # *source*: specific BeautifulSoup syntax like
+    #      'find_all("a")' and '["href"]' provided
+    #      by ChatGPT (supposedly allowed by ed post
+    #      #49), all the logic beyond that was
+    #      mostly us
+    # 
     for anchor_tag in page_as_neater_object.find_all("a", href=True):
         next_url_relative = anchor_tag["href"]
         next_url_absolute = urljoin(current_url, next_url_relative)
         if is_valid(next_url_absolute):
-            next_urls_absolute.append(next_url_absolute)
 
-            # tracking unique urls
-            url_with_fragment = next_url_absolute
-            url_without_fragment, fragment = urldefrag(url_with_fragment)
-            unique_url_set.add(url_without_fragment) # preventing duplicate entries auto-handled by "set" data structure
+            # 
+            url_with_fragment_as_string = next_url_absolute
+            url_no_fragment_as_string, fragment = urldefrag(url_with_fragment_as_string)
+            url_no_fragment_parsed = urlparse(url_no_fragment_as_string)
+            subdomain = url_no_fragment_parsed.hostname
 
-    #
-    print("**")
-    print("number of unique urls: " + str(len(unique_url_set)))
-    print("**")
+            # storage for report parts 1 and 4
+            if (subdomain not in 
+                    k_subdomain_v_unique_pages_and_visit_counts):
+                k_subdomain_v_unique_pages_and_visit_counts[subdomain] = {}
+            if (url_no_fragment_as_string not in 
+                    k_subdomain_v_unique_pages_and_visit_counts[subdomain]):
+                k_subdomain_v_unique_pages_and_visit_counts[subdomain][url_no_fragment_as_string] = 1
+            else:
+                k_subdomain_v_unique_pages_and_visit_counts[subdomain][url_no_fragment_as_string] += 1
+
+            # adding to frontier with visit count threshold check)
+            if (k_subdomain_v_unique_pages_and_visit_counts[subdomain][url_no_fragment_as_string] <
+                   unique_page_max_visit_count):
+                next_urls_absolute.append(url_with_fragment_as_string)
+
+    # #
+    # print("**")
+    # print("number of unique urls: " + str(len(unique_url_set)))
+    # print("**")
     
     return next_urls_absolute
-        
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
