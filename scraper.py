@@ -100,7 +100,9 @@ def extract_next_links(url, resp):
 
         # add url to frontier
         next_urls_absolute.append(url_with_fragment_as_string)
-            
+
+        # test print
+        print(url_with_fragment_as_string)
 
     print("**")
     print_unique_page_count()
@@ -117,14 +119,26 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]):
             return False
         
-        # filter hostname to acceptable list - *my partner*
+        # filter hostname to acceptable list -keith
         acceptable_hostname_suffixes = ['.ics.uci.edu', '.cs.uci.edu', '.informatics.uci.edu', '.stat.uci.edu']
         acceptable = False
         for hostname_suffix in acceptable_hostname_suffixes:
-            if parsed.hostname[-len(hostname_suffix):] == hostname_suffix:
+            if parsed.hostname and parsed.hostname[-len(hostname_suffix):] == hostname_suffix:
                 acceptable = True
                 break
         if not acceptable:
+            return False
+
+        # ad-hoc date filter to avoid calendar traps -keith
+        if re.search(r"[0-9][0-9][0-9][0-9].[0-9][0-9]", parsed.path):
+            return False
+
+        # ad-hoc domain filter -keith
+        if re.search(r"(intranet|swiki|wics|wiki|grape)", parsed.hostname):
+            return False
+
+        # ad-hoc eppstein filter -keith
+        if re.search("~eppstein", parsed.path):
             return False
 
         return not re.match(
@@ -140,3 +154,4 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+

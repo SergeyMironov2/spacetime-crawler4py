@@ -6,7 +6,7 @@ def print_unique_page_count():
     for subdomain, non_fragment_dict in globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique.items():
         for non_fragment_url, fragment_set in non_fragment_dict.items():
             unique_page_count += len(fragment_set)  # count all URLs with unique fragments
-    print("Number of unique pages (counting all fragments):")
+    print("Number of unique pages (ignoring differences in fragments):")
     print("\t" + str(unique_page_count))
 
 
