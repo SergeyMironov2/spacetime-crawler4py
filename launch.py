@@ -20,4 +20,13 @@ if __name__ == "__main__":
     parser.add_argument("--restart", action="store_true", default=False)
     parser.add_argument("--config_file", type=str, default="config.ini")
     args = parser.parse_args()
-    main(args.config_file, args.restart)
+
+     try:
+        main(args.config_file, args.restart)
+    except KeyboardInterrupt:
+        print("\nKeyboard Interrupt detected. Printing final statistics.\n")
+    
+    print_unique_page_count()
+    print_longest_page()
+    print_top_words()
+    print_uci_subdomains()

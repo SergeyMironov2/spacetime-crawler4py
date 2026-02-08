@@ -84,10 +84,9 @@ def extract_next_links(url, resp):
                    unique_page_max_visit_count):
                 next_urls_absolute.append(url_with_fragment_as_string)
 
-    # #
-    # print("**")
-    # print("number of unique urls: " + str(len(unique_url_set)))
-    # print("**")
+    print("**")
+    print_unique_page_count()
+    print("**")
     
     return next_urls_absolute
 
