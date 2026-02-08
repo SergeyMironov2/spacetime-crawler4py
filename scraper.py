@@ -5,6 +5,9 @@ from urllib.parse import urlunparse
 from urllib.parse import urldefrag
 import re
 
+import globals
+from data_prints import *
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -19,7 +22,7 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-
+    
     if resp.status != 200:
         return []
 
@@ -34,23 +37,23 @@ def extract_next_links(url, resp):
     #      suggested by ChatGPT, remaining logic
     #      done by us
     # 
-    text_to_parse_mixed_case = page_as_neater_object.text()
+    text_to_parse_mixed_case = page_as_neater_object.text
     text_to_parse_lower_case = text_to_parse_mixed_case.lower()
     word_list = re.split(r'\W+', text_to_parse_lower_case)
 
     # word counting: storage for report part 2
-    if len(word_list) > non_unique_url_and_max_word_count[1]:
-        non_unique_url_and_max_word_count = (
+    if len(word_list) > globals.non_unique_url_and_max_word_count[1]:
+        globals.non_unique_url_and_max_word_count = (
             current_url,
             len(word_list))
 
     # word counting: storage for report part 3
     for word in word_list:
-        if word not in stop_words:
-            if word in words_and_counts_no_stop_words:
-                words_and_counts_no_stop_words[word] += 1
+        if word not in globals.stop_words:
+            if word in globals.words_and_counts_no_stop_words:
+                globals.words_and_counts_no_stop_words[word] += 1
             else:
-                words_and_counts_no_stop_words[word] = 1
+                globals.words_and_counts_no_stop_words[word] = 1
         
     # *source*: specific BeautifulSoup syntax like
     #      'find_all("a")' and '["href"]' provided
@@ -61,28 +64,43 @@ def extract_next_links(url, resp):
     for anchor_tag in page_as_neater_object.find_all("a", href=True):
         next_url_relative = anchor_tag["href"]
         next_url_absolute = urljoin(current_url, next_url_relative)
-        if is_valid(next_url_absolute):
 
-            # 
-            url_with_fragment_as_string = next_url_absolute
-            url_no_fragment_as_string, fragment = urldefrag(url_with_fragment_as_string)
-            url_no_fragment_parsed = urlparse(url_no_fragment_as_string)
-            subdomain = url_no_fragment_parsed.hostname
+        # if not valid, continue
+        if not is_valid(next_url_absolute):
+            continue
+            
+        # preparing some variables
+        url_with_fragment_as_string = next_url_absolute
+        url_no_fragment_as_string, fragment = urldefrag(url_with_fragment_as_string)
+        url_no_fragment_parsed = urlparse(url_no_fragment_as_string)
+        subdomain = url_no_fragment_parsed.hostname
 
-            # storage for report parts 1 and 4
-            if (subdomain not in 
-                    k_subdomain_v_unique_pages_and_visit_counts):
-                k_subdomain_v_unique_pages_and_visit_counts[subdomain] = {}
-            if (url_no_fragment_as_string not in 
-                    k_subdomain_v_unique_pages_and_visit_counts[subdomain]):
-                k_subdomain_v_unique_pages_and_visit_counts[subdomain][url_no_fragment_as_string] = 1
-            else:
-                k_subdomain_v_unique_pages_and_visit_counts[subdomain][url_no_fragment_as_string] += 1
+        # create subdomain dictionary if none yet
+        if subdomain not in globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique:
+            globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain] = {}
 
-            # adding to frontier with visit count threshold check)
-            if (k_subdomain_v_unique_pages_and_visit_counts[subdomain][url_no_fragment_as_string] <
-                   unique_page_max_visit_count):
-                next_urls_absolute.append(url_with_fragment_as_string)
+        # create non_fragment_unique set if none yet
+        if url_no_fragment_as_string not in \
+                globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain]:
+            globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string] = set()
+
+        # if fragment_unique already present, continue
+        if url_with_fragment_as_string in \
+                globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string]:
+            continue
+
+        # if non_fragment_unique already reached max threshold, continue
+        if len(globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string]) >= \
+                globals.unique_page_max_visit_count:
+            continue
+
+        # add the url to the main structure
+        globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string].add(
+            url_with_fragment_as_string)
+
+        # add url to frontier
+        next_urls_absolute.append(url_with_fragment_as_string)
+            
 
     print("**")
     print_unique_page_count()

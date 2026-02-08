@@ -5,6 +5,8 @@ from utils.server_registration import get_cache_server
 from utils.config import Config
 from crawler import Crawler
 
+from globals import *
+from data_prints import *
 
 def main(config_file, restart):
     cparser = ConfigParser()
@@ -21,12 +23,12 @@ if __name__ == "__main__":
     parser.add_argument("--config_file", type=str, default="config.ini")
     args = parser.parse_args()
 
-     try:
+    try:
         main(args.config_file, args.restart)
     except KeyboardInterrupt:
         print("\nKeyboard Interrupt detected. Printing final statistics.\n")
     
     print_unique_page_count()
-    print_longest_page()
-    print_top_words()
+    print_longest_page_by_words()
+    print_top_n_words()
     print_uci_subdomains()
