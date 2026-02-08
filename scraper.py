@@ -49,7 +49,8 @@ def extract_next_links(url, resp):
 
     # word counting: storage for report part 3
     for word in word_list:
-        if word not in globals.stop_words:
+        # length check added -keith
+        if word not in globals.stop_words and len(word) > 2:
             if word in globals.words_and_counts_no_stop_words:
                 globals.words_and_counts_no_stop_words[word] += 1
             else:
@@ -120,7 +121,7 @@ def is_valid(url):
             return False
         
         # filter hostname to acceptable list -keith
-        acceptable_hostname_suffixes = ['.ics.uci.edu', '.cs.uci.edu', '.informatics.uci.edu', '.stat.uci.edu']
+        acceptable_hostname_suffixes = ['ics.uci.edu', 'cs.uci.edu', 'informatics.uci.edu', 'stat.uci.edu']
         acceptable = False
         for hostname_suffix in acceptable_hostname_suffixes:
             if parsed.hostname and parsed.hostname[-len(hostname_suffix):] == hostname_suffix:
@@ -133,8 +134,8 @@ def is_valid(url):
         if re.search(r"[0-9][0-9][0-9][0-9].[0-9][0-9]", parsed.path):
             return False
 
-        # ad-hoc domain filter -keith
-        if re.search(r"(intranet|swiki|wics|wiki|grape)", parsed.hostname):
+        # other ad-hoc filters -keith
+        if re.search(r"(admin|wiki)", parsed.path):
             return False
 
         # ad-hoc eppstein filter -keith
