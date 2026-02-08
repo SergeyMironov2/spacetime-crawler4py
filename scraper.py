@@ -121,7 +121,7 @@ def is_valid(url):
             return False
         
         # filter hostname to acceptable list -keith
-        acceptable_hostname_suffixes = ['ics.uci.edu', 'cs.uci.edu', 'informatics.uci.edu', 'stat.uci.edu']
+        acceptable_hostname_suffixes = ['.ics.uci.edu', '.cs.uci.edu', '.informatics.uci.edu', '.stat.uci.edu']
         acceptable = False
         for hostname_suffix in acceptable_hostname_suffixes:
             if parsed.hostname and parsed.hostname[-len(hostname_suffix):] == hostname_suffix:
