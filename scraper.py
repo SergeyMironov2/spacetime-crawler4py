@@ -40,7 +40,7 @@ def extract_next_links(url, resp):
     text_to_parse_mixed_case = page_as_neater_object.text
     text_to_parse_lower_case = text_to_parse_mixed_case.lower()
     word_list = re.split(r'\W+', text_to_parse_lower_case)
-
+    
     # word counting: storage for report part 2
     if len(word_list) > globals.non_unique_url_and_max_word_count[1]:
         globals.non_unique_url_and_max_word_count = (
@@ -76,31 +76,19 @@ def extract_next_links(url, resp):
         url_no_fragment_parsed = urlparse(url_no_fragment_as_string)
         subdomain = url_no_fragment_parsed.hostname
 
-        # create subdomain dictionary if none yet
-        if subdomain not in globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique:
-            globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain] = {}
-
-        # create non_fragment_unique set if none yet
-        if url_no_fragment_as_string not in \
-                globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain]:
-            globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string] = set()
-
-        # if fragment_unique already present, continue
-        if url_with_fragment_as_string in \
-                globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string]:
+        # create subdomain set if none yet
+        if subdomain not in globals.k_subdomain_v_set_of_unique_pages:
+            globals.k_subdomain_v_set_of_unique_pages[subdomain] = set()
+        
+        # skip if URL (without fragment) already recorded
+        if url_no_fragment_as_string in globals.k_subdomain_v_set_of_unique_pages[subdomain]:
             continue
-
-        # if non_fragment_unique already reached max threshold, continue
-        if len(globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string]) >= \
-                globals.unique_page_max_visit_count:
-            continue
-
-        # add the url to the main structure
-        globals.l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique[subdomain][url_no_fragment_as_string].add(
-            url_with_fragment_as_string)
+        
+        # add the URL (without fragment) to the main structure
+        globals.k_subdomain_v_set_of_unique_pages[subdomain].add(url_no_fragment_as_string)
 
         # add url to frontier
-        next_urls_absolute.append(url_with_fragment_as_string)
+        next_urls_absolute.append(url_no_fragment)
 
         # test print
         print(url_with_fragment_as_string)

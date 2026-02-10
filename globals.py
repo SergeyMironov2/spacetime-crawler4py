@@ -4,17 +4,14 @@
 # structure:
 # - dict of:
 #      - key: subdomain
-#      - value: dict of:
+#      - value: set of:
 #           - key: unique page (not counting fragment)
-#           - value: set of:
-#                - unique page (counting fragment)
 # 
 # purpose:
-# - report part #1
+# - report part #1s
 # - report part #4
-# - avoiding traps (because the number of times a unique page has been visited could be compared to a threshold, and that could be a form of trap avoidance).
 # 
-l0_search_space_l1_subdomain_l2_non_fragment_unique_l3_fragment_unique = {}
+k_subdomain_v_set_of_unique_pages
 
 # **
 # global variable 2:
@@ -74,14 +71,3 @@ words_and_counts_no_stop_words = {}
 # - report part #2
 # 
 non_unique_url_and_max_word_count = ("", -1)
-
-# **
-# global variable 5:
-# 
-# structure:
-# - unique page max visit count (just an int)
-# 
-# purpose:
-# - trap detection
-# 
-unique_page_max_visit_count = 10
